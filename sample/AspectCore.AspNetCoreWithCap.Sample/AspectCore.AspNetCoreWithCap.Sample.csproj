@@ -1,8 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.0;netcoreapp2.0</TargetFrameworks>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="DotNetCore.CAP.InMemoryStorage" Version="2.6.0" />
     <PackageReference Include="Savorboard.CAP.InMemoryMessageQueue" Version="2.6.0" />
@@ -10,4 +17,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\AspectCore.Extensions.DependencyInjection\AspectCore.Extensions.DependencyInjection.csproj" />
   </ItemGroup>
+
 </Project>

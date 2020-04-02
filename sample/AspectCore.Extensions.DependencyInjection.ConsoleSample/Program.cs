@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AspectCore.DependencyInjection;
+using AspectCore.DynamicProxy;
+using DotNetCore.CAP;
+using DotNetCore.CAP.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using Savorboard.CAP.InMemoryMessageQueue;
 
 namespace AspectCore.Extensions.DependencyInjection.ConsoleSample
 {
@@ -12,6 +17,20 @@ namespace AspectCore.Extensions.DependencyInjection.ConsoleSample
             var services = new ServiceCollection();
             services.AddTransient<ILogger, ConsoleLogger>();
             services.AddTransient<ISampleService, SampleService>();
+            services.AddTransient<ITestEventHandler, TestEventHandler>();
+            
+            services.AddCap(o =>
+            {
+                o.UseInMemoryStorage();
+                // 设置处理成功的数据在数据库中保存的时间（秒），为保证系统性能，数据会定期清理
+                o.SucceedMessageExpiredAfter = 24 * 3600;
+                // 设置失败重试次数
+                o.FailedRetryCount = 5;
+                o.Version = "bing_test";
+                // 启用内存队列
+                o.UseInMemoryMessageQueue();
+            });
+            services.ConfigureDynamicProxy();
             var serviceProvider = services.BuildServiceContextProvider();
 //            var container = services.ToServiceContext();
 //            container.AddType<ILogger, ConsoleLogger>();
@@ -46,10 +65,43 @@ namespace AspectCore.Extensions.DependencyInjection.ConsoleSample
     {
         [FromServiceContext]
         public ILogger Logger { get; set; }
+
+        [FromServiceContext]
+        public ICapPublisher Publish { get; set; }
         
         public void Invoke()
         {
            Logger?.Info("sample service invoke.");
+           Publish.Publish("test","aaaaaaaa");
+        }
+    }
+
+    public interface ITestEventHandler
+    {
+        Task WritLogAsync(string message);
+    }
+
+    public class TestEventHandler : ITestEventHandler, DotNetCore.CAP.ICapSubscribe
+    {
+        [Test]
+        [CapSubscribe("test")]
+        public Task WritLogAsync(string message)
+        {
+            Console.WriteLine(message);
+            return Task.CompletedTask;
+        }
+    }
+
+    public class TestAttribute : AbstractInterceptorAttribute
+    {
+        public int[] Times { get; set; } = { 1, 100, 10000, 1000000 };
+        public override async Task Invoke(AspectContext context, AspectDelegate next)
+        {
+            foreach (var times in Times)
+            {
+                for (var i = 0; i < times; i++)
+                    await next(context);
+            }
         }
     }
 }
