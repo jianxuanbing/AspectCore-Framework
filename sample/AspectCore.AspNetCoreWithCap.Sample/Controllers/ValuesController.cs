@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotNetCore.CAP;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AspectCore.AspNetCoreWithCap.Sample.Controllers
 {
@@ -12,9 +13,12 @@ namespace AspectCore.AspNetCoreWithCap.Sample.Controllers
     {
         private readonly ICapPublisher _publisher;
 
-        public ValuesController(ICapPublisher publisher)
+        private readonly IServiceProvider _serviceProvider;
+
+        public ValuesController(ICapPublisher publisher, IServiceProvider serviceProvider)
         {
             _publisher = publisher;
+            _serviceProvider = serviceProvider;
         }
 
         /// <summary>
@@ -23,6 +27,7 @@ namespace AspectCore.AspNetCoreWithCap.Sample.Controllers
         [HttpGet]
         public async Task<IActionResult> TestGetAsync()
         {
+            var test = _serviceProvider.GetService<ITestEventHandler>();
             await _publisher.PublishAsync("test", "隔壁老汪");
             return Ok();
         }

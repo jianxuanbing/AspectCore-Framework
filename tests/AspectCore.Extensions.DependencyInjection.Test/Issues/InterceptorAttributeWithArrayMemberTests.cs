@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,7 +56,9 @@ namespace AspectCore.Extensions.DependencyInjection.Test.Issues
                 .AddScoped<IUserAppService, UserAppService>()
                 .ConfigureDynamicProxy()
                 .BuildDynamicProxyProvider();
-
+            var tempType = sp.GetService(typeof(IUserAppService));
+            var types = sp.GetServices(typeof(IUserAppService));
+            var type = types?.FirstOrDefault(o => o.GetType() == typeof(UserAppService));
             var usrAppSrv = sp.GetRequiredService<IUserAppService>();
             var name = usrAppSrv.DisplayName("gain", "loss");
             Assert.Equal("gain loss", name);
