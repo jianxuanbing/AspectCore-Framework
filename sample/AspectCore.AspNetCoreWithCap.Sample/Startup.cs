@@ -32,7 +32,7 @@ namespace AspectCore.AspNetCoreWithCap.Sample
                 o.UseInMemoryMessageQueue();
             });
             services.AddMvc();
-
+            services.ConfigureDynamicProxy();
             return services.BuildServiceContextProvider();
         }
 
